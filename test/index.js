@@ -4,20 +4,24 @@ var http = require('http')
 var request = require('supertest')
 var mockApi = require('./mocks/api')
 
-describe('forteLifecycle()', function(){
-  var server
-  var _forteLifecycle = forteLifecycle(mockApi)
+describe('forteLifecycle', function(){
 
-  before(function(){
-    server = createServer(_forteLifecycle)
+  it('should throw an error when the apiClient does not implement the proper interface methods', function(){
+    assert.throws(function(){ forteLifecycle({}) })
   })
 
-  describe('when a request is processed with an invalid hostname', function(){
-    it('should return an error statusCode', function(done){
+  var server 
+
+  before(function(){
+    server = createServer(forteLifecycle(mockApi({latency: 250})))
+  })
+
+  describe('when a request is processed with a valid hostname', function(){
+    it('should have a request.organization property', function(done){
       request(server)
       .get('/')
-      .set('host', 'INVALID')
-      .expect(500, 'Unkown Organization', done)
+      .set('host', 'ladds')
+      .expect(200, '{"ID":"ladds","parentID":"clubcar"}', done)
     })
   })
 
@@ -30,12 +34,12 @@ describe('forteLifecycle()', function(){
     })
   })
 
-  describe('when a request is processed with a valid hostname', function(){
-    it('should have a request.organization property', function(done){
+  describe('when a request is processed with an invalid hostname', function(){
+    it('should return an error statusCode', function(done){
       request(server)
       .get('/')
-      .set('host', 'ladds')
-      .expect(200, '{"ID":"ladds","parentID":"clubcar"}', done)
+      .set('host', 'INVALID')
+      .expect(500, 'Unkown Organization', done)
     })
   })
 })

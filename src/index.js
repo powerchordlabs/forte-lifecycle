@@ -1,4 +1,13 @@
+import onHeaders from 'on-headers'
+import impl from './implements'
+
+const apiInterface = ['perf', 'organization.get', 'organizations.get']
+
 module.exports = function forteServer(apiClient, options) {
+	if(!impl(apiClient, apiInterface)){
+		throw new Error(`apiClient does not implement ${apiInterface.join(', ')}`)
+	}
+
 	let opts = {...{ orgCacheTimeout: 0 }, ...options}
 
 	let _orgCache
@@ -10,14 +19,13 @@ module.exports = function forteServer(apiClient, options) {
 	}
 
 	function resolveOrganization(hostname){
-
 		// load all orgs if we don't have them already
 		_orgsFetchPromise = _orgsFetchPromise || apiClient.organizations.get()
 				.then(org => {  _lastOrgFetchTimestamp = Date.now(); return org;})
 
 		return _orgsFetchPromise.then(organizations => {
 			_orgCache = organizations
-
+			
 			let _cachedOrg = _orgCache[hostname]
 
 			if(!_cachedOrg) {
@@ -37,6 +45,14 @@ module.exports = function forteServer(apiClient, options) {
 	}
 
 	return function forteServer(req, res, next){
+
+		// track render time
+		var start = Date.now()
+		onHeaders(res, () => {
+			res.renderTime = Date.now()-start
+			apiClient.perf('server.renderTime', res.renderTime, {url: req.url})
+		})
+
 		resolveOrganization(req.headers.host)
 			.then(organization => { 
 				req.organization = organization 
