@@ -1,0 +1,32 @@
+{
+  "name": "forte-server",
+  "version": "1.0.0",
+  "description": "An express middleware that automatically hooks in to forte perf and analytics",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "assert": "^1.3.0",
+    "babel-cli": "^6.4.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-stage-2": "^6.3.13",
+    "mocha": "^2.3.4",
+    "supertest": "^1.1.0"
+  },
+  "scripts": {
+    "compile": "babel -d lib/ src/",
+    "test": "npm run compile && mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/powerchordinc/forte-server.git"
+  },
+  "keywords": [
+    "forte"
+  ],
+  "author": "powerchordinc",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/powerchordinc/forte-server/issues"
+  },
+  "homepage": "https://github.com/powerchordinc/forte-server#readme"
+}
