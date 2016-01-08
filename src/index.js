@@ -1,12 +1,19 @@
 import onHeaders from 'on-headers'
-import impl from './implements'
+import impl from 'implementjs'
 
-const apiInterface = ['perf', 'organization.get', 'organizations.get']
+const apiInterface = {
+	perf: impl.F,
+	organization: { 
+		get: impl.F
+	}, 
+	organizations: { 
+		get: impl.F
+	}
+}
 
 module.exports = function forteServer(apiClient, options) {
-	if(!impl(apiClient, apiInterface)){
-		throw new Error(`apiClient does not implement ${apiInterface.join(', ')}`)
-	}
+	// assert interface requirements
+	impl.implements(apiClient, apiInterface)
 
 	let opts = {...{ orgCacheTimeout: 0 }, ...options}
 
