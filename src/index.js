@@ -11,15 +11,27 @@ const apiInterface = {
 	}
 }
 
-module.exports = function forteServer(apiClient, options) {
+const statsInterface = {
+	histogram: impl.F
+}
+
+function verifyConfig(config) {
 	// assert interface requirements
-	impl.implements(apiClient, apiInterface)
+	impl.implements(config.apiClient, apiInterface)
+	impl.implements(config.statsClient, statsInterface)
+}
+
+module.exports = function forteServer(config, options) {
+
+	verifyConfig(config)
 
 	let opts = {...{ orgCacheTimeout: 0 }, ...options}
+	let api = config.apiClient
+	let stats = config.statsClient
 
 	let _orgCache
 	let _orgsFetchPromise
-	let _lastOrgFetchTimestamp;
+	let _lastOrgFetchTimestamp
 
 	function isStale(){
 		return new Date(Date.now()-_lastOrgFetchTimestamp).getMilliseconds() >= opts.orgCacheTimeout
@@ -27,7 +39,7 @@ module.exports = function forteServer(apiClient, options) {
 
 	function resolveOrganization(hostname){
 		// load all orgs if we don't have them already
-		_orgsFetchPromise = _orgsFetchPromise || apiClient.organizations.get()
+		_orgsFetchPromise = _orgsFetchPromise || api.organizations.get()
 				.then(org => {  _lastOrgFetchTimestamp = Date.now(); return org;})
 
 		return _orgsFetchPromise.then(organizations => {
@@ -37,7 +49,7 @@ module.exports = function forteServer(apiClient, options) {
 
 			if(!_cachedOrg) {
 				if(isStale()){
-					return apiClient.organization.get(hostname)
+					return api.organization.get(hostname)
 						.then(org => { 
 							_lastOrgFetchTimestamp = Date.now()
 							_orgCache[hostname] = org
@@ -57,7 +69,7 @@ module.exports = function forteServer(apiClient, options) {
 		var start = Date.now()
 		onHeaders(res, () => {
 			res.renderTime = Date.now()-start
-			apiClient.perf('server.renderTime', res.renderTime, {url: req.url})
+			stats.histogram('server.renderTime', res.renderTime, {url: req.url})
 		})
 
 		resolveOrganization(req.headers.host)
@@ -71,20 +83,3 @@ module.exports = function forteServer(apiClient, options) {
 			.then(next)
 	}
 }
-
-/* psuedo...
-
-app = express()
-
-client = new forteApi({credentials, apiUrl})
-
-app.use(lifecycleMiddleware(client)) // tracks render times and manages org cache
-
-app.get('*', (req, res, next) => {
-	// set the api org scope, as we have it now via the lifecycle middleware...
-	// client.setOrganization(req.currentOrganization)
-	// e.g. <Conductor apiClient={client} />
-})
-
-
-*/
