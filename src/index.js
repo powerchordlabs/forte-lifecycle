@@ -2,7 +2,6 @@ import onHeaders from 'on-headers'
 import impl from 'implementjs'
 
 const apiInterface = {
-	perf: impl.F,
 	organization: { 
 		get: impl.F
 	}, 

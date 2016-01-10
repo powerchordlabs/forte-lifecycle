@@ -2,9 +2,6 @@ module.exports = function(options) {
   let opts = {...{ latency: 0}, ...options}
   let org = null;
   return {
-    perf: (name, value, tags) => {
-      // console.log(`dgram(${name}:${value}|h|#url:${tags.url}`)
-    },
     organization: {
       get: function(hostname) {
         return new Promise((resolve, reject) => {

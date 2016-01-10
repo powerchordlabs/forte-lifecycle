@@ -2,7 +2,7 @@
   "name": "forte-server",
   "version": "1.0.0",
   "description": "An express middleware that automatically hooks in to forte perf and analytics",
-  "main": "index.js",
+  "main": "./lib",
   "dependencies": {
     "implementjs": "^0.3.0",
     "on-headers": "^1.0.1"

@@ -20,7 +20,6 @@ describe('forteLifecycle', function(){
     _mockApi = mockApi({latency: 250})
     _mockStats = mockStats()
 
-    sinon.spy(_mockApi, 'perf')
     sinon.spy(_mockApi.organization, 'get')
     sinon.spy(_mockApi.organizations, 'get')
     sinon.spy(_mockStats, 'histogram')
