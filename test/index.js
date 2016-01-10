@@ -33,12 +33,12 @@ describe('forteLifecycle', function(){
     server = createServer(forteLifecycle(config))
   })
   
-  describe('when the first request is received, VALID or INVALID', function(){ 
+  describe('when the first request is received', function(){ 
     it('the organization cache shoud be populated', function(done){
       request(server)
         .get('/')
-        .set('host', 'INVALID')
-        .expect(500)
+        .set('host', 'ladds')
+        .expect(200)
         .end(function(err, res){
           if (err) return done(err);
           assert(_mockApi.organizations.get.calledOnce)
@@ -98,6 +98,8 @@ function createServer(middleware) {
         return
       }
 
+      // put out org in the body, 
+      // as we don't have access to the request.organization prop in the tests
       res.end(JSON.stringify(req.organization))
     })
   })
