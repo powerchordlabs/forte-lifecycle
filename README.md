@@ -1,15 +1,60 @@
-# forte-server
+# forte-lifecycle
 
-TODO: build this readme
+Forte Lifecycle is expressjs middleware that provides lifecycle magic to your Forte experience apps.
 
-### original notes
-* manage org tree cache and client variable injection
-    * warmup org cache on server start
-    * always check org cache by host header and backfill if org not cached
-    * create a mapping of subdomain => org in memory as requests come in
-* adds 'organization' property to express req object for valid requests
-* calls stats.histogram with render.duration metric
-* adapters for express
-    * handle hooks for render start/end events
-    * track render time using:
-        * stats.timing(‘render.duration’, time() - startTime) // in ms
+## Features
+
+* **Automatic Organization resolver cache**  
+The first request processed will cause a `forte-api` call to be made that fills the organization cache. A request.organization prop will also be available for use in other areas of your express server.
+* **Automatic server.renderTime metric tracking**  
+All requests are timed and logged to the PowerChorc platform via `forte-stats`
+
+## Install
+
+`$ npm i -S forte-lifecycle`
+
+## Usage
+
+``` js
+var express = require('express')
+var api = require('forte-api')
+var stats = require('forte-stats')
+var lifecycle = require('forte-lifecycle')
+
+var app = express()
+
+var apiClient = api({...})
+var statsClient = stats({...})
+var apiClient = api({...})
+
+// register the middleware
+// be sure to register the middleware before any routes that require organization info
+app.use(lifecycle({ apiClient, statsClient })) 
+
+// now, all requests will have a request.organization property
+// and log server.renderTime to the PowerChord platform
+app.get('/', function (req, res) {
+  res.send('Hello ' + req.organization.name '!');
+});
+
+app.listen(3000, function () {
+  console.log('Forte Experience app listening on port 3000!');
+})
+```
+
+## API
+
+### Constructor
+
+#### ForteLifecycle(config)
+Creates an instance of the Forte Lifecycle middleware.
+
+* `apiClient: object`  
+A `forte-api` client instance. An object that conforms to the following interface can also be supplied:
+    * `organization.get: function`  
+    Returns a promise that returns a single organization.
+    * `organizations.get: function`  
+    Returns a promise that returns all organizations.
+* `statsClient: object`  
+A `forte-stats` client instance or an object that conforms to the following interface:
+    * `histogram: function(name, value, tags)`  
