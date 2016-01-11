@@ -48,7 +48,7 @@ module.exports = function forteServer(config, options) {
 
 			if(!_cachedOrg) {
 				if(isStale()){
-					return api.organization.get(hostname)
+					return api.organization.get({hostname: hostname})
 						.then(org => { 
 							_lastOrgFetchTimestamp = Date.now()
 							_orgCache[hostname] = org
