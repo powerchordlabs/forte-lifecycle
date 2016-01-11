@@ -20,8 +20,8 @@ describe('forteLifecycle', function(){
     _mockApi = mockApi({latency: 100})
     _mockStats = mockStats()
 
-    sinon.spy(_mockApi.organization, 'get')
-    sinon.spy(_mockApi.organizations, 'get')
+    sinon.spy(_mockApi.organizations, 'getAll')
+    sinon.spy(_mockApi.organizations, 'getOne')
     sinon.spy(_mockStats, 'histogram')
 
     var config = { 
@@ -40,7 +40,7 @@ describe('forteLifecycle', function(){
         .expect(200)
         .end(function(err, res){
           if (err) return done(err);
-          assert(_mockApi.organizations.get.calledOnce)
+          assert(_mockApi.organizations.getAll.calledOnce)
           done()
         })
     })

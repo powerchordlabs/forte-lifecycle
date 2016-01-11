@@ -2,11 +2,9 @@ import onHeaders from 'on-headers'
 import impl from 'implementjs'
 
 const apiInterface = {
-	organization: { 
-		get: impl.F
-	}, 
 	organizations: { 
-		get: impl.F
+		getAll: impl.F,
+		getOne: impl.F
 	}
 }
 
@@ -38,7 +36,7 @@ module.exports = function forteServer(config, options) {
 
 	function resolveOrganization(hostname){
 		// load all orgs if we don't have them already
-		_orgsFetchPromise = _orgsFetchPromise || api.organizations.get()
+		_orgsFetchPromise = _orgsFetchPromise || api.organizations.getAll({status: 'active'})
 				.then(org => {  _lastOrgFetchTimestamp = Date.now(); return org;})
 
 		return _orgsFetchPromise.then(organizations => {
@@ -48,7 +46,7 @@ module.exports = function forteServer(config, options) {
 
 			if(!_cachedOrg) {
 				if(isStale()){
-					return api.organization.get({hostname: hostname})
+					return api.organizations.getOne({hostname: hostname, status: 'active'})
 						.then(org => { 
 							_lastOrgFetchTimestamp = Date.now()
 							_orgCache[hostname] = org
