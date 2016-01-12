@@ -1,19 +1,21 @@
 module.exports = function(options) {
-  let opts = {...{ latency: 0}, ...options}
-  let org = null;
+  var opts = options;
+  opts.latency = opts.latency || 0
+  var org = null;
   return {
     organizations: {
       getOne: function(filter) {
         return new Promise(function(resolve, reject){
           if(filter.hostname === 'INVALID') {
-            setTimeout(() => reject({statusCode: 404, body: 'Unknown Organization'}), opts.latency)
+            setTimeout(function() { reject({statusCode: 404, body: 'Unknown Organization'}) }, opts.latency)
           }
-          setTimeout(() => resolve({ ID: filter.hostname, parentID: "clubcar"}), opts.latency)
+          setTimeout(function() { resolve({ ID: filter.hostname, parentID: "clubcar"}) }, opts.latency)
         })
       },
       getAll: function(filter){
-        return new Promise((resolve, reject) =>
-          setTimeout(() => resolve({ "ladds": { ID: "ladds", parentID: "clubcar"}}), opts.latency)
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() { resolve({ "ladds": { ID: "ladds", parentID: "clubcar"}}) }, opts.latency)
+        }
         )
       }
     }

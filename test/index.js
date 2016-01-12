@@ -1,5 +1,5 @@
 var rewire = require('rewire')
-var forteLifecycle = rewire('../lib/')
+var forteLifecycle = rewire('../src')
 var assert = require('chai').assert
 var http = require('http')
 var request = require('supertest')
@@ -7,12 +7,10 @@ var mockApi = require('./mocks/api')
 var sinon = require('sinon')
 
 // rewire the node-statsd module
-forteLifecycle.__set__('_nodeStatsd2', {
-  default: {
+forteLifecycle.__set__('stats', {
     histogram: function (name, value, tags) {
       // console.log(`dgram(${name}:${value}|h|#url:${tags.url}`)
     }
-  }
 })
 
 describe('forteLifecycle', function(){
@@ -28,7 +26,7 @@ describe('forteLifecycle', function(){
   
   before(function(){
     _mockApi = mockApi({latency: 100})
-    _mockStats = forteLifecycle.__get__('_nodeStatsd2.default')
+    _mockStats = forteLifecycle.__get__('stats')
 
     sinon.spy(_mockApi.organizations, 'getAll')
     sinon.spy(_mockApi.organizations, 'getOne')

@@ -1,8 +1,10 @@
-import onHeaders from 'on-headers'
-import impl from 'implementjs'
-import stats from 'node-statsd'
+var onHeaders = require('on-headers')
+var impl = require('implementjs')
+var stats = require('node-statsd')
 
-const apiInterface = {
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var apiInterface = {
 	organizations: { 
 		getAll: impl.F,
 		getOne: impl.F
@@ -18,12 +20,12 @@ module.exports = function forteServer(config, options) {
 
 	verifyConfig(config)
 
-	let opts = {...{ orgCacheTimeout: 0 }, ...options}
-	let api = config.apiClient
+	var opts = _extends({}, { orgCacheTimeout: 0 }, options)
+	var api = config.apiClient
 
-	let _orgCache
-	let _orgsFetchPromise
-	let _lastOrgFetchTimestamp
+	var _orgCache
+	var _orgsFetchPromise
+	var _lastOrgFetchTimestamp
 
 	function isStale(){
 		return new Date(Date.now()-_lastOrgFetchTimestamp).getMilliseconds() >= opts.orgCacheTimeout
@@ -34,19 +36,19 @@ module.exports = function forteServer(config, options) {
 		_orgsFetchPromise = 
 			_orgsFetchPromise || 
 			api.organizations.getAll({status: 'active'})
-				.then(org => {  
+				.then(function(org) {  
 					_lastOrgFetchTimestamp = Date.now(); return org;
 				})
 
-		return _orgsFetchPromise.then(organizations => {
+		return _orgsFetchPromise.then(function(organizations) {
 			_orgCache = organizations
 			
-			let _cachedOrg = _orgCache[hostname]
+			var _cachedOrg = _orgCache[hostname]
 
 			if(!_cachedOrg) {
 				if(isStale()){
 					return api.organizations.getOne({hostname: hostname, status: 'active'})
-						.then(org => { 
+						.then(function(org) { 
 							_lastOrgFetchTimestamp = Date.now()
 							_orgCache[hostname] = org
 							return org
@@ -55,7 +57,7 @@ module.exports = function forteServer(config, options) {
 				throw new Error('Unknown Organization')
 			}
 
-			return {..._cachedOrg}
+			return _extends({}, _cachedOrg)
 		})
 	}
 
@@ -63,15 +65,15 @@ module.exports = function forteServer(config, options) {
 
 		// track render time
 		var start = Date.now()
-		onHeaders(res, () => {
+		onHeaders(res, function() {
 			res.renderTime = Date.now()-start
 			stats.histogram('server.renderTime', res.renderTime, {url: req.url})
 		})
 
 		resolveOrganization(req.headers.host)
-			.then(organization => { 
+			.then(function(organization) { 
 				req.organization = organization 
-			}, err => {
+			}, function(err) {
 				res.statusCode = err.statusCode || 500
         		res.end(err.body || err.message)
 			})
