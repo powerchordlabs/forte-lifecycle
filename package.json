@@ -17,7 +17,6 @@
     "supertest": "^1.1.0"
   },
   "scripts": {
-    "compile": "babel -d lib/ src/",
     "test": "mocha",
     "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha"
   },
