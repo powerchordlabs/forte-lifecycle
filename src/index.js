@@ -1,5 +1,6 @@
 import onHeaders from 'on-headers'
 import impl from 'implementjs'
+import stats from 'node-statsd'
 
 const apiInterface = {
 	organizations: { 
@@ -8,14 +9,9 @@ const apiInterface = {
 	}
 }
 
-const statsInterface = {
-	histogram: impl.F
-}
-
 function verifyConfig(config) {
 	// assert interface requirements
 	impl.implements(config.apiClient, apiInterface)
-	impl.implements(config.statsClient, statsInterface)
 }
 
 module.exports = function forteServer(config, options) {
@@ -24,7 +20,6 @@ module.exports = function forteServer(config, options) {
 
 	let opts = {...{ orgCacheTimeout: 0 }, ...options}
 	let api = config.apiClient
-	let stats = config.statsClient
 
 	let _orgCache
 	let _orgsFetchPromise
@@ -36,8 +31,12 @@ module.exports = function forteServer(config, options) {
 
 	function resolveOrganization(hostname){
 		// load all orgs if we don't have them already
-		_orgsFetchPromise = _orgsFetchPromise || api.organizations.getAll({status: 'active'})
-				.then(org => {  _lastOrgFetchTimestamp = Date.now(); return org;})
+		_orgsFetchPromise = 
+			_orgsFetchPromise || 
+			api.organizations.getAll({status: 'active'})
+				.then(org => {  
+					_lastOrgFetchTimestamp = Date.now(); return org;
+				})
 
 		return _orgsFetchPromise.then(organizations => {
 			_orgCache = organizations
@@ -53,7 +52,7 @@ module.exports = function forteServer(config, options) {
 							return org
 						})
 				}
-				throw new Error('Unkown Organization')
+				throw new Error('Unknown Organization')
 			}
 
 			return {..._cachedOrg}
@@ -73,9 +72,8 @@ module.exports = function forteServer(config, options) {
 			.then(organization => { 
 				req.organization = organization 
 			}, err => {
-				res.statusCode = 500
-        		res.end(err.message)
-        		return
+				res.statusCode = err.statusCode || 500
+        		res.end(err.body || err.message)
 			})
 			.then(next)
 	}

@@ -1,10 +1,19 @@
-var forteLifecycle = require('../lib/')
-var assert = require('assert')
+var rewire = require('rewire')
+var forteLifecycle = rewire('../lib/')
+var assert = require('chai').assert
 var http = require('http')
 var request = require('supertest')
 var mockApi = require('./mocks/api')
-var mockStats = require('./mocks/stats')
 var sinon = require('sinon')
+
+// rewire the node-statsd module
+forteLifecycle.__set__('_nodeStatsd2', {
+  default: {
+    histogram: function (name, value, tags) {
+      // console.log(`dgram(${name}:${value}|h|#url:${tags.url}`)
+    }
+  }
+})
 
 describe('forteLifecycle', function(){
 
@@ -15,23 +24,42 @@ describe('forteLifecycle', function(){
   var server 
   var _mockApi
   var _mockStats
+  var config = {}
   
   before(function(){
     _mockApi = mockApi({latency: 100})
-    _mockStats = mockStats()
+    _mockStats = forteLifecycle.__get__('_nodeStatsd2.default')
 
     sinon.spy(_mockApi.organizations, 'getAll')
     sinon.spy(_mockApi.organizations, 'getOne')
     sinon.spy(_mockStats, 'histogram')
 
-    var config = { 
-      apiClient: _mockApi, 
-      statsClient: _mockStats
-    }
+    config.apiClient = _mockApi
+  })
 
+  beforeEach(function(){
     server = createServer(forteLifecycle(config))
   })
-  
+
+  function assertTrackedRenderTime() {
+      it('server.renderTime should be logged via stats.histogram', function(done){
+        //console.log('_mockStats.histogram.callCount:', _mockStats.histogram.callCount)
+        var args = _mockStats.histogram.lastCall.args;
+        assert.equal(args.length, 3)
+
+        var name  = args[0],
+            value = args[1],
+            tags  = args[2];
+
+        assert.equal(name, 'server.renderTime')
+        assert.isNumber(value, 'histogram.value')
+        assert.isObject(tags, 'histogram.tags')
+        assert.isDefined(tags.url, 'histogram.tags.url')
+
+        done()
+      })
+  }
+
   describe('when the first request is received', function(){ 
     it('the organization cache shoud be populated', function(done){
       request(server)
@@ -44,16 +72,11 @@ describe('forteLifecycle', function(){
           done()
         })
     })
+
+    assertTrackedRenderTime()
   })
 
   describe('when a request has a VALID hostname', function(){
-
-    function assertTrackedRenderTime(mockStats) {
-      var args = mockStats.histogram.lastCall.args;
-      assert.equal(args.length, 3)
-      assert.equal(args[0], 'server.renderTime')
-    }
-
     describe('and hostname IS cached', function(){    
       it('request should have an organization property', function(done){
         request(server)
@@ -62,7 +85,7 @@ describe('forteLifecycle', function(){
           .expect(200, '{"ID":"ladds","parentID":"clubcar"}', done)
       })
 
-      it('server.renderTime should be logged via the statsClient', function(){ assertTrackedRenderTime(_mockStats) })
+      assertTrackedRenderTime()
     })
 
     describe('and hostname IS NOT cached', function(){
@@ -73,32 +96,30 @@ describe('forteLifecycle', function(){
           .expect(200, '{"ID":"NEWORG","parentID":"clubcar"}', done)
       })
 
-      it('server.renderTime should be logged via the statsClient', function(){ assertTrackedRenderTime(_mockStats) })
+      assertTrackedRenderTime()
     })
 
   })
 
   describe('when a request has an INVALID hostname', function(){
-    it('should return an error statusCode', function(done){
+    it('should return an 404 statusCode', function(done){
       request(server)
         .get('/')
         .set('host', 'INVALID')
-        .expect(500, 'Unkown Organization', done)
+        .expect(404, 'Unknown Organization', done)
     })
+
+    assertTrackedRenderTime()
   })
 })
 
 function createServer(middleware) {
   return http.createServer(function(req, res){
     middleware(req, res, function(err){
-      if (err) {
-        res.statusCode = 500
-        res.end(err.message)
-        return
-      }
-
-      // put out org in the body, 
-      // as we don't have access to the request.organization prop in the tests
+      // note: does not throw err, it returns an error response instead
+      
+      // typical express middleware testing pattern of 
+      // outputting test results in the response
       res.end(JSON.stringify(req.organization))
     })
   })

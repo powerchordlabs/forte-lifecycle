@@ -6,7 +6,7 @@ module.exports = function(options) {
       getOne: function(filter) {
         return new Promise(function(resolve, reject){
           if(filter.hostname === 'INVALID') {
-            setTimeout(() => reject(new Error('Unkown Organization')), opts.latency)
+            setTimeout(() => reject({statusCode: 404, body: 'Unknown Organization'}), opts.latency)
           }
           setTimeout(() => resolve({ ID: filter.hostname, parentID: "clubcar"}), opts.latency)
         })
