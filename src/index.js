@@ -16,7 +16,7 @@ function verifyConfig(config) {
 	impl.implements(config.apiClient, apiInterface)
 }
 
-module.exports = function forteServer(config, options) {
+module.exports = function forteLifecycle(config, options) {
 
 	verifyConfig(config)
 
@@ -61,7 +61,7 @@ module.exports = function forteServer(config, options) {
 		})
 	}
 
-	return function forteServer(req, res, next){
+	return function forteLifecycle(req, res, next){
 
 		// track render time
 		var start = Date.now()

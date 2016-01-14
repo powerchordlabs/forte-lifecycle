@@ -1,5 +1,5 @@
 {
-  "name": "forte-server",
+  "name": "forte-lifecycle",
   "version": "1.0.0",
   "description": "An express middleware that automatically hooks in to forte perf and analytics",
   "main": "./lib",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/powerchordinc/forte-server.git"
+    "url": "git+https://github.com/powerchordinc/forte-lifecycle.git"
   },
   "keywords": [
     "forte"
@@ -30,7 +30,7 @@
   "author": "powerchordinc",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/powerchordinc/forte-server/issues"
+    "url": "https://github.com/powerchordinc/forte-lifecycle/issues"
   },
-  "homepage": "https://github.com/powerchordinc/forte-server#readme"
+  "homepage": "https://github.com/powerchordinc/forte-lifecycle#readme"
 }
