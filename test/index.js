@@ -28,15 +28,14 @@ describe('forteLifecycle', function(){
     _mockApi = mockApi({latency: 0})
     _mockStats = forteLifecycle.__get__('stats')
 
-    sinon.spy(_mockApi.organizations, 'getAll')
+    sinon.spy(_mockApi.organizations, 'getMany')
     sinon.spy(_mockApi.organizations, 'getOne')
     sinon.spy(_mockStats, 'histogram')
 
-    config.apiClient = _mockApi
   })
 
   beforeEach(function(){
-    server = createServer(forteLifecycle(config))
+    server = createServer(forteLifecycle(_mockApi))
   })
 
   function assertTrackedRenderTime() {
@@ -66,7 +65,7 @@ describe('forteLifecycle', function(){
         .expect(200)
         .end(function(err, res){
           if (err) return done(err);
-          assert(_mockApi.organizations.getAll.calledOnce)
+          assert(_mockApi.organizations.getMany.calledOnce)
           done()
         })
     })

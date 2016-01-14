@@ -6,36 +6,36 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var apiInterface = {
 	organizations: { 
-		getAll: impl.F,
+		getMany: impl.F,
 		getOne: impl.F
 	}
 }
 
-function verifyConfig(config) {
+function verifyConfig(apiClient) {
 	// assert interface requirements
-	impl.implements(config.apiClient, apiInterface)
+	impl.implements(apiClient, apiInterface)
 }
 
-module.exports = function forteLifecycle(config, options) {
+module.exports = function forteLifecycle(apiClient, options) {
 
-	verifyConfig(config)
+	verifyConfig(apiClient)
 
-	var opts = _extends({}, { orgCacheTimeout: 0 }, options)
-	var api = config.apiClient
+	var opts = _extends({}, { lookupDelay: 60, statsd: null }, options)
+	var api = apiClient
 
 	var _orgCache
 	var _orgsFetchPromise
 	var _lastOrgFetchTimestamp
 
-	function isStale(){
-		return new Date(Date.now()-_lastOrgFetchTimestamp).getMilliseconds() >= opts.orgCacheTimeout
+	function allowLookup(){
+		return new Date(Date.now()-_lastOrgFetchTimestamp).getSeconds() >= opts.lookupDelay
 	}
 
 	function resolveOrganization(hostname){
 		// load all orgs if we don't have them already
 		_orgsFetchPromise = 
 			_orgsFetchPromise || 
-			api.organizations.getAll({status: 'active'})
+			api.organizations.getMany({status: 'active'})
 				.then(function(org) {  
 					_lastOrgFetchTimestamp = Date.now(); return org;
 				})
@@ -46,7 +46,7 @@ module.exports = function forteLifecycle(config, options) {
 			var _cachedOrg = _orgCache[hostname]
 
 			if(!_cachedOrg) {
-				if(isStale()){
+				if(allowLookup()){
 					return api.organizations.getOne({hostname: hostname, status: 'active'})
 						.then(function(org) { 
 							_lastOrgFetchTimestamp = Date.now()

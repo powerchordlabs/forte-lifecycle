@@ -12,7 +12,7 @@ module.exports = function(options) {
           setTimeout(function() { resolve({ ID: filter.hostname, parentID: "clubcar"}) }, opts.latency)
         })
       },
-      getAll: function(filter){
+      getMany: function(filter){
         return new Promise(function(resolve, reject) {
           setTimeout(function() { resolve({ "ladds": { ID: "ladds", parentID: "clubcar"}}) }, opts.latency)
         }
