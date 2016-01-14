@@ -54,7 +54,8 @@ A `forte-api` client instance or an object that conforms to the following interf
     Returns a promise that returns all organizations. `filter` is an object map of props to filter by e.x.: `{ parentID: '...'}`. 
 * `options: {Object}`
     * `lookupDelay: {number}`  
-    The number of seconds to wait before calling the API to lookup an un-cached hostname. Useful to prevent multiple api calls for invalid/inactive hostnames. `default: 60`
+    The number of seconds to wait before calling the API to lookup an un-cached hostname. Useful to prevent multiple api calls for invalid/inactive hostnames.  
+    `default: 60`
     * `stats: {Object}`  
     An optional configuration object for `node-statsd`.  
     `default: node-statsd defaults` see [node-statsd usage](https://github.com/sivy/node-statsd#usage)
