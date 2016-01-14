@@ -2,6 +2,7 @@ var onHeaders = require('on-headers')
 var impl = require('implementjs')
 var stats = require('node-statsd')
 
+/* istanbul ignore next */
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var apiInterface = {
@@ -36,8 +37,9 @@ module.exports = function forteLifecycle(apiClient, options) {
 		_orgsFetchPromise = 
 			_orgsFetchPromise || 
 			api.organizations.getMany({status: 'active'})
-				.then(function(org) {  
-					_lastOrgFetchTimestamp = Date.now(); return org;
+				.then(function(response) {  
+					_lastOrgFetchTimestamp = Date.now(); 
+					return response.data;
 				})
 
 		return _orgsFetchPromise.then(function(organizations) {
@@ -48,13 +50,20 @@ module.exports = function forteLifecycle(apiClient, options) {
 			if(!_cachedOrg) {
 				if(allowLookup()){
 					return api.organizations.getOne({hostname: hostname, status: 'active'})
-						.then(function(org) { 
+						.then(function(response) { 
 							_lastOrgFetchTimestamp = Date.now()
-							_orgCache[hostname] = org
-							return org
+							_orgCache[hostname] = response.data
+							return _orgCache[hostname]
+						}, function(response){
+							throw response
 						})
 				}
-				throw new Error('Unknown Organization')
+
+				throw { 
+    	            status: 404, 
+        	        statusText: 'Not Found', 
+            	    data: 'Not Found'
+              	}
 			}
 
 			return _extends({}, _cachedOrg)
@@ -72,10 +81,10 @@ module.exports = function forteLifecycle(apiClient, options) {
 
 		resolveOrganization(req.headers.host)
 			.then(function(organization) { 
-				req.organization = organization 
-			}, function(err) {
-				res.statusCode = err.statusCode || 500
-        		res.end(err.body || err.message)
+				req.organization = organization
+			}, function(response) {
+				res.statusCode = response.status
+        		res.end(response.data)
 			})
 			.then(next)
 	}

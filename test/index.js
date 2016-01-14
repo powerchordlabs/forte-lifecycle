@@ -35,7 +35,7 @@ describe('forteLifecycle', function(){
   })
 
   beforeEach(function(){
-    server = createServer(forteLifecycle(_mockApi))
+    server = createServer(forteLifecycle(_mockApi, { lookupDelay: 0 }))
   })
 
   function assertTrackedRenderTime() {
@@ -99,14 +99,28 @@ describe('forteLifecycle', function(){
   })
 
   describe('when a request has an INVALID hostname', function(){
-    it('should return an 404 statusCode', function(done){
+    it('should return a 404 status', function(done){
       request(server)
         .get('/')
         .set('host', 'INVALID')
-        .expect(404, 'Unknown Organization', done)
+        .expect(404, done)
     })
 
     assertTrackedRenderTime()
+
+    describe('and lookupDelay is in play', function(){
+      beforeEach(function(){
+        server = createServer(forteLifecycle(_mockApi, { lookupDelay: 60 }))
+      })
+      it('should return a 404 status', function(done){
+        request(server)
+          .get('/')
+          .set('host', 'INVALID')
+          .expect(404, done)
+      })
+
+      assertTrackedRenderTime()
+    })
   })
 })
 

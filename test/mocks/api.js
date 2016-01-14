@@ -7,16 +7,42 @@ module.exports = function(options) {
       getOne: function(filter) {
         return new Promise(function(resolve, reject){
           if(filter.hostname === 'INVALID') {
-            setTimeout(function() { reject({statusCode: 404, body: 'Unknown Organization'}) }, opts.latency)
+            setTimeout(function() { 
+              reject({ 
+                status: 404, 
+                statusText: 'Not Found', 
+                data: 'Not Found'
+              })
+            }, opts.latency)
           }
-          setTimeout(function() { resolve({ ID: filter.hostname, parentID: "clubcar"}) }, opts.latency)
+
+          setTimeout(function() { 
+            resolve({ 
+              status: 200, 
+              statusText: 'ok', 
+              data: { 
+                ID: filter.hostname, 
+                parentID: "clubcar"
+              }
+            })
+          }, opts.latency)
         })
       },
       getMany: function(filter){
         return new Promise(function(resolve, reject) {
-          setTimeout(function() { resolve({ "ladds": { ID: "ladds", parentID: "clubcar"}}) }, opts.latency)
-        }
-        )
+          setTimeout(function() { 
+            resolve({ 
+              status: 200, 
+              statusText: 'ok', 
+              data: { 
+                "ladds": { 
+                  ID: "ladds", 
+                  parentID: "clubcar"
+                }
+              }
+            })
+          }, opts.latency)
+        })
       }
     }
 }}
