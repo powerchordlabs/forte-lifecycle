@@ -81,7 +81,12 @@ module.exports = function forteLifecycle(apiClient, options) {
 
 		resolveOrganization(req.headers.host)
 			.then(function(organization) { 
-				req.organization = organization
+				req.lifecycle = {
+					scope: {
+						trunk: organization.trunkID,
+						branch: organization.ID
+					}
+				}
 			}, function(response) {
 				res.statusCode = response.status
         		res.end(response.data)

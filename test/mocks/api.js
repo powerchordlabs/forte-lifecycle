@@ -22,7 +22,7 @@ module.exports = function(options) {
               statusText: 'ok', 
               data: { 
                 ID: filter.hostname, 
-                parentID: "clubcar"
+                trunkID: "clubcar"
               }
             })
           }, opts.latency)
@@ -37,7 +37,7 @@ module.exports = function(options) {
               data: { 
                 "ladds": { 
                   ID: "ladds", 
-                  parentID: "clubcar"
+                  trunkID: "clubcar"
                 }
               }
             })

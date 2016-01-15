@@ -75,22 +75,22 @@ describe('forteLifecycle', function(){
 
   describe('when a request has a VALID hostname', function(){
     describe('and hostname IS cached', function(){    
-      it('request should have an organization property', function(done){
+      it('request should have a lifecycle.scope property', function(done){
         request(server)
           .get('/')
           .set('host', 'ladds')
-          .expect(200, '{"ID":"ladds","parentID":"clubcar"}', done)
+          .expect(200, '{"trunk":"clubcar","branch":"ladds"}', done)
       })
 
       assertTrackedRenderTime()
     })
 
     describe('and hostname IS NOT cached', function(){
-      it('request should have an organization property', function(done){
+      it('request should have a lifecycle.scope property', function(done){
         request(server)
           .get('/')
-          .set('host', 'NEWORG')
-          .expect(200, '{"ID":"NEWORG","parentID":"clubcar"}', done)
+          .set('host', 'newbranch')
+          .expect(200, '{"trunk":"clubcar","branch":"newbranch"}', done)
       })
 
       assertTrackedRenderTime()
@@ -131,7 +131,7 @@ function createServer(middleware) {
       
       // typical express middleware testing pattern of 
       // outputting test results in the response
-      res.end(JSON.stringify(req.organization))
+      res.end(JSON.stringify(req.lifecycle.scope))
     })
   })
 }
