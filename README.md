@@ -13,7 +13,14 @@ All requests are timed and logged via [node-statsd](https://github.com/sivy/node
 
 `$ npm i -S forte-lifecycle`
 
-## Usage
+## Documentation
+
+* [Quick Start](#quick-start)
+* [API](#api)
+    * [Constructor](#constructor)
+    * [Request Properties](#request-properties)
+
+## Quick Start
 
 ``` js
 var express = require('express')
@@ -25,13 +32,13 @@ var app = express()
 var api = forteApi({...})
 
 // register the middleware
-// be sure to register the middleware before any routes that require organization info
+// be sure to register the middleware before any routes that require trunk/branch scope info
 app.use(lifecycle(api)) 
 
-// now, all requests will have a request.organization property
+// now, all requests will have a request.lifecycle property
 // and log server.renderTime using node-statsd
 app.get('/', function (req, res) {
-  res.send('Hello ' + req.organization.name '!');
+  res.send('Hello ' + req.lifecycle.scope.trunk '!');
 });
 
 app.listen(3000, function () {  
@@ -59,3 +66,14 @@ A `forte-api` client instance or an object that conforms to the following interf
     * `stats: {Object}`  
     An optional configuration object for `node-statsd`.  
     `default: node-statsd defaults` see [node-statsd usage](https://github.com/sivy/node-statsd#usage)
+
+### Request Properties
+
+The lifecycle middleware adds the following properties to the request for use in subsequent middleware/handlers:
+
+#### request.lifecycle: {object}
+
+* `trunk: {string}`  
+The trunk organization ID for the request.
+* `branch: {string}`  
+The branch organization ID for the request.
