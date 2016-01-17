@@ -80,6 +80,19 @@ module.exports = function forteLifecycle(apiClient, options) {
 	}
 }
 
+/* 
+ * Custom Errors
+ */
+function InvalidArgumentError(field) {
+  this.name = 'InvalidArgumentError';
+  this.message = 'Invalid Argument: ' + id;
+}
+InvalidArgumentError.prototype = Object.create(Error.prototype);
+InvalidArgumentError.prototype.constructor = InvalidArgumentError;
+
+/* 
+ * Verifcations
+ */
 function argumentError(name) {
 	throw new InvalidArgumentError(name)
 }
