@@ -1,27 +1,12 @@
+var assign = require('./util.js').assign
 var onHeaders = require('on-headers')
-var impl = require('implementjs')
 var stats = require('node-statsd')
-
-/* istanbul ignore next */
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var apiInterface = {
-	organizations: { 
-		getMany: impl.F,
-		getOne: impl.F
-	}
-}
-
-function verifyConfig(apiClient) {
-	// assert interface requirements
-	impl.implements(apiClient, apiInterface)
-}
 
 module.exports = function forteLifecycle(apiClient, options) {
 
-	verifyConfig(apiClient)
+	verifyConfig.apply(null, arguments)
 
-	var opts = _extends({}, { lookupDelay: 60, statsd: null }, options)
+	var opts = assign({}, { lookupDelay: 60, statsd: null }, options)
 	var api = apiClient
 
 	var _orgCache
@@ -66,7 +51,7 @@ module.exports = function forteLifecycle(apiClient, options) {
               	}
 			}
 
-			return _extends({}, _cachedOrg)
+			return assign({}, _cachedOrg)
 		})
 	}
 
@@ -94,3 +79,26 @@ module.exports = function forteLifecycle(apiClient, options) {
 			.then(next)
 	}
 }
+
+function argumentError(name) {
+	throw new InvalidArgumentError(name)
+}
+
+function verifyConfig(apiClient, options) {
+	if(typeof apiClient !== 'object') {
+		argumentError('apiClient')
+	}
+
+	if(typeof apiClient.organizations != 'object') {
+		argumentError('apiClient.organizations')
+	}
+
+	if(typeof apiClient.organizations.getMany != 'function') {
+		argumentError('apiClient.organizations.getMany')
+	}
+
+	if(typeof apiClient.organizations.getOne != 'function') {
+		argumentError('apiClient.organizations.getOne')
+	}
+}
+

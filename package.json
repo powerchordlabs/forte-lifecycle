@@ -4,7 +4,6 @@
   "description": "An express middleware that automatically hooks in to forte perf and analytics",
   "main": "./lib",
   "dependencies": {
-    "implementjs": "^0.3.0",
     "node-statsd": "^0.1.1",
     "on-headers": "^1.0.1"
   },

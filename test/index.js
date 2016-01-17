@@ -16,7 +16,18 @@ forteLifecycle.__set__('stats', {
 describe('forteLifecycle', function(){
 
   it('should throw an error when config is invalid', function(){
-    assert.throws(function(){ forteLifecycle({}) })
+    var invalidConfigs = [
+      undefined,
+      null,
+      {},
+      { organizations: function(){}},
+      { organizations: {}},
+      { organizations: { getMany: {}, getOne: {} }},
+      { organizations: { getMany: function(){}, getOne: {} }},
+    ]
+    invalidConfigs.forEach(function(config){
+      assert.throws(function(){ forteLifecycle(config) })
+    })
   })
 
   var server 
