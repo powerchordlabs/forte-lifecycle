@@ -1,4 +1,4 @@
-# forte-lifecycle
+    # forte-lifecycle
 
 Forte Lifecycle is expressjs middleware that provides lifecycle magic to your Forte experience apps.
 
@@ -71,8 +71,10 @@ A `forte-api` client instance or an object that conforms to the following interf
 
 The lifecycle middleware adds the following properties to the request for use in subsequent middleware/handlers:
 
-#### request.lifecycle: {object}
+#### request.lifecycle.scope: {object}
 
+* `hostname: {string}`
+The hostname of the request derived from `request.headers.host`.
 * `trunk: {string}`  
 The trunk organization ID for the request.
 * `branch: {string}`  

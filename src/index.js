@@ -68,6 +68,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 			.then(function(organization) { 
 				req.lifecycle = {
 					scope: {
+						hostname: req.headers.host,
 						trunk: organization.trunkID,
 						branch: organization.ID
 					}

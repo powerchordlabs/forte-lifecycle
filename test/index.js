@@ -90,7 +90,7 @@ describe('forteLifecycle', function(){
         request(server)
           .get('/')
           .set('host', 'ladds')
-          .expect(200, '{"trunk":"clubcar","branch":"ladds"}', done)
+          .expect(200, '{"hostname":"ladds","trunk":"clubcar","branch":"ladds"}', done)
       })
 
       assertTrackedRenderTime()
@@ -101,7 +101,7 @@ describe('forteLifecycle', function(){
         request(server)
           .get('/')
           .set('host', 'newbranch')
-          .expect(200, '{"trunk":"clubcar","branch":"newbranch"}', done)
+          .expect(200, '{"hostname":"newbranch","trunk":"clubcar","branch":"newbranch"}', done)
       })
 
       assertTrackedRenderTime()
