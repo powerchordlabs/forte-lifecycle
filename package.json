@@ -4,7 +4,9 @@
   "description": "An express middleware that automatically hooks in to forte perf and analytics",
   "main": "./src",
   "dependencies": {
+    "debug": "^2.2.0",
     "node-statsd": "^0.1.1",
+    "normalizr": "^2.0.0",
     "on-headers": "^1.0.1"
   },
   "devDependencies": {

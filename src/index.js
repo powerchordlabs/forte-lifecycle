@@ -1,6 +1,22 @@
 var assign = require('./util.js').assign
 var onHeaders = require('on-headers')
 var StatsD = require('node-statsd')
+var stats = new StatsD()
+var debug = require('debug')('forte-lifecycle')
+
+var Schema = require('normalizr').Schema
+var normalize = require('normalizr').normalize
+var arrayOf = require('normalizr').arrayOf
+
+
+var organizationSchema = new Schema('organizations', {
+  idAttribute: 'hostname'
+})
+
+var Schemas = {
+  ORGANIZATION: organizationSchema,
+  ORGANIZATION_ARRAY: arrayOf(organizationSchema),
+}
 
 module.exports = function forteLifecycle(apiClient, options) {
 
@@ -9,41 +25,52 @@ module.exports = function forteLifecycle(apiClient, options) {
 	var opts = assign({}, { lookupDelay: 60, statsd: null }, options)
 	var api = apiClient
 
+	var _lastError = false
 	var _orgCache
 	var _orgsFetchPromise
 	var _lastOrgFetchTimestamp
-	var stats = new StatsD()
 
 	function allowLookup(){
 		return new Date(Date.now()-_lastOrgFetchTimestamp).getSeconds() >= opts.lookupDelay
 	}
 
 	function resolveOrganization(hostname){
-		// load all orgs if we don't have them already
+		// load all orgs if we don't have them already, or we got an error last time
 		_orgsFetchPromise = 
-			_orgsFetchPromise || 
+			(!_lastError && _orgsFetchPromise) ||
 			api.organizations.getMany({status: 'active'})
 				.then(function(response) {  
-					_lastOrgFetchTimestamp = Date.now(); 
-					return response.data;
+					debug('called!!!')
+					_lastOrgFetchTimestamp = Date.now();
+
+					var organizations = response.data
+					debug('organizations returned: %d', organizations.length)
+
+					_orgCache = assign({}, _orgCache, normalize(organizations, Schemas.ORGANIZATION_ARRAY))
+					
+				}).catch(function(err) {
+					_lastError = true;
 				})
 
-		return _orgsFetchPromise.then(function(organizations) {
-			_orgCache = organizations
-			
-			var _cachedOrg = _orgCache[hostname]
+		return _orgsFetchPromise.then(function() {
+			var _cachedOrg = _orgCache.entities.organizations[hostname]
+			debug('found %d org in cache for hostname %s', _cachedOrg ? 1 : 0, hostname)
 
-			if(!_cachedOrg) {
-				if(allowLookup()){
-					return api.organizations.getOne({hostname: hostname, status: 'active'})
+			// TODO: see ticket #2586 about creating support for getOne by hostname
+			/*
+			if(!_cachedOrg || _lastError) {
+				//if(_lastError || allowLookup()){
+					return api.organizations.getMany{hostname: hostname, status: 'active'})
 						.then(function(response) { 
+							debug('organization returned: %o', response.data)
 							_lastOrgFetchTimestamp = Date.now()
 							_orgCache[hostname] = response.data
 							return _orgCache[hostname]
 						}, function(response){
+							debug('error calling api.organizations.getOne: %s', response)
 							throw response
 						})
-				}
+				//}
 
 				throw { 
     	            status: 404, 
@@ -51,6 +78,7 @@ module.exports = function forteLifecycle(apiClient, options) {
             	    data: 'Not Found'
               	}
 			}
+			*/
 
 			return assign({}, _cachedOrg)
 		})
@@ -67,9 +95,10 @@ module.exports = function forteLifecycle(apiClient, options) {
 
 		resolveOrganization(req.headers.host)
 			.then(function(organization) { 
+				debug('organization found: \n%o', organization)
 				req.lifecycle = {
 					scope: {
-						hostname: req.headers.host,
+						hostname: organization.hostname,
 						trunk: organization.trunkID,
 						branch: organization.ID
 					}
@@ -77,7 +106,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 				next()
 			}, function(response) {
         		next(response)
-			})
+			}).catch(next)
 	}
 }
 
@@ -112,8 +141,10 @@ function verifyConfig(apiClient, options) {
 		argumentError('apiClient.organizations.getMany')
 	}
 
+	/*
 	if(typeof apiClient.organizations.getOne !== 'function') {
 		argumentError('apiClient.organizations.getOne')
 	}
+	*/
 }
 

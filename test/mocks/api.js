@@ -4,6 +4,7 @@ module.exports = function(options) {
   var org = null;
   return {
     organizations: {
+      /*
       getOne: function(filter) {
         return new Promise(function(resolve, reject){
           if(filter.hostname === 'INVALID') {
@@ -28,18 +29,20 @@ module.exports = function(options) {
           }, opts.latency)
         })
       },
+      */
       getMany: function(filter){
         return new Promise(function(resolve, reject) {
           setTimeout(function() { 
             resolve({ 
               status: 200, 
               statusText: 'ok', 
-              data: { 
-                "ladds": { 
+              data: [
+                { 
                   ID: "ladds", 
-                  trunkID: "clubcar"
+                  trunkID: "clubcar",
+                  hostname: "ladds"
                 }
-              }
+              ]
             })
           }, opts.latency)
         })

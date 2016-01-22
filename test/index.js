@@ -22,8 +22,9 @@ describe('forteLifecycle', function(){
       {},
       { organizations: function(){}},
       { organizations: {}},
-      { organizations: { getMany: {}, getOne: {} }},
-      { organizations: { getMany: function(){}, getOne: {} }},
+      { organizations: { getMany: {} }}
+      //{ organizations: { getMany: {}, getOne: {} }},
+      //{ organizations: { getMany: function(){}, getOne: {} }},
     ]
     invalidConfigs.forEach(function(config){
       assert.throws(function(){ forteLifecycle(config) })
@@ -40,7 +41,7 @@ describe('forteLifecycle', function(){
     _mockStats = forteLifecycle.__get__('stats')
 
     sinon.spy(_mockApi.organizations, 'getMany')
-    sinon.spy(_mockApi.organizations, 'getOne')
+    //sinon.spy(_mockApi.organizations, 'getOne')
     sinon.spy(_mockStats, 'histogram')
 
   })
