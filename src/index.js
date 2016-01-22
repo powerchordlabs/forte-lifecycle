@@ -1,6 +1,6 @@
 var assign = require('./util.js').assign
 var onHeaders = require('on-headers')
-var stats = require('node-statsd')
+var StatsD = require('node-statsd')
 
 module.exports = function forteLifecycle(apiClient, options) {
 
@@ -12,6 +12,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 	var _orgCache
 	var _orgsFetchPromise
 	var _lastOrgFetchTimestamp
+	var stats = new StatsD()
 
 	function allowLookup(){
 		return new Date(Date.now()-_lastOrgFetchTimestamp).getSeconds() >= opts.lookupDelay
@@ -61,7 +62,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 		var start = Date.now()
 		onHeaders(res, function() {
 			res.renderTime = Date.now()-start
-			stats.histogram('server.renderTime', res.renderTime, {url: req.url})
+			stats.histogram('server.renderTime', res.renderTime, {url: req.url, status: res.statusCode})
 		})
 
 		resolveOrganization(req.headers.host)
@@ -73,21 +74,21 @@ module.exports = function forteLifecycle(apiClient, options) {
 						branch: organization.ID
 					}
 				}
+				next()
 			}, function(response) {
-				res.statusCode = response.status
-        		res.end(response.data)
+        		next(response)
 			})
-			.then(next)
 	}
 }
 
 /* 
  * Custom Errors
  */
-function InvalidArgumentError(field) {
-  this.name = 'InvalidArgumentError';
-  this.message = 'Invalid Argument: ' + id;
+function InvalidArgumentError(message) {
+	this.name = 'InvalidArgumentError';
+	this.message = message;
 }
+
 InvalidArgumentError.prototype = Object.create(Error.prototype);
 InvalidArgumentError.prototype.constructor = InvalidArgumentError;
 
@@ -103,15 +104,15 @@ function verifyConfig(apiClient, options) {
 		argumentError('apiClient')
 	}
 
-	if(typeof apiClient.organizations != 'object') {
+	if(typeof apiClient.organizations !== 'object') {
 		argumentError('apiClient.organizations')
 	}
 
-	if(typeof apiClient.organizations.getMany != 'function') {
+	if(typeof apiClient.organizations.getMany !== 'function') {
 		argumentError('apiClient.organizations.getMany')
 	}
 
-	if(typeof apiClient.organizations.getOne != 'function') {
+	if(typeof apiClient.organizations.getOne !== 'function') {
 		argumentError('apiClient.organizations.getOne')
 	}
 }
