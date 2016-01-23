@@ -97,7 +97,7 @@ describe('forteLifecycle', function(){
       assertTrackedRenderTime()
     })
 
-    describe('and hostname IS NOT cached', function(){
+    describe.skip('and hostname IS NOT cached', function(){
       it('request should have a lifecycle.scope property', function(done){
         request(server)
           .get('/')
@@ -111,7 +111,7 @@ describe('forteLifecycle', function(){
   })
 
   describe('when a request has an INVALID hostname', function(){
-    it('should return a 404 status', function(done){
+    it.skip('should return a 404 status', function(done){
       request(server)
         .get('/')
         .set('host', 'INVALID')
@@ -124,7 +124,7 @@ describe('forteLifecycle', function(){
       beforeEach(function(){
         server = createServer(forteLifecycle(_mockApi, { lookupDelay: 60 }))
       })
-      it('should return a 404 status', function(done){
+      it.skip('should return a 404 status', function(done){
         request(server)
           .get('/')
           .set('host', 'INVALID')
