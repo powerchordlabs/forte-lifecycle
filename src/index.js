@@ -87,7 +87,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 		var start = Date.now()
 		onHeaders(res, function() {
 			res.renderTime = Date.now()-start
-			stats.histogram('server.renderTime', res.renderTime, {url: req.url, statusCode: res.statusCode})
+			stats.histogram('server.renderTime', res.renderTime, ['url:' + req.url, 'statusCode:' + res.statusCode])
 		})
 
 		resolveOrganization(req.headers.host)

@@ -74,19 +74,14 @@ describe('forteLifecycle', function(){
         assert.isNumber(last.value, 'histogram.value')
       })
 
-      it('should have tags', function(){
+      it('should have a url tag', function(){
         var last = lastCall()
-        assert.isObject(last.tags, 'histogram.tags')
+        assert.match(last.tags[0], /url\:\/.*/, 'histogram.tags url')
       })
 
-      it('should have tags.url', function(){
+      it('should have a statusCode tag', function(){
         var last = lastCall()
-        assert.isDefined(last.tags.url, 'histogram.tags.url')
-      })
-
-      it('should have tags.statusCode', function(){
-        var last = lastCall()
-        assert.isDefined(last.tags.statusCode, 'histogram.tags.statusCode')
+        assert.match(last.tags[1], /statusCode\:\d*/, 'histogram.tags statusCode')
       })
     })
   }
