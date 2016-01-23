@@ -6,11 +6,22 @@ var request = require('supertest')
 var mockApi = require('./mocks/api')
 var sinon = require('sinon')
 
+// we create this module level variable becuase the code under test news up StatsD
+// when it does we need to spy on the new instance...
+var _mockStats
+
 // rewire the node-statsd module
-forteLifecycle.__set__('stats', {
-    histogram: function (name, value, tags) {
-      // console.log(`dgram(${name}:${value}|h|#url:${tags.url}`)
+forteLifecycle.__set__('StatsD', function(options){
+    _mockStats = {
+      histogram: function (name, value, tags) {
+        // console.log("`dgram(${name}:${value}|h|#url:${tags.url}`")
+      }
     }
+    
+    // spy on the new instance...
+    sinon.spy(_mockStats, 'histogram')
+    
+    return _mockStats
 })
 
 describe('forteLifecycle', function(){
@@ -33,40 +44,51 @@ describe('forteLifecycle', function(){
 
   var server 
   var _mockApi
-  var _mockStats
   var config = {}
   
   before(function(){
     _mockApi = mockApi({latency: 0})
-    _mockStats = forteLifecycle.__get__('stats')
 
     sinon.spy(_mockApi.organizations, 'getMany')
     //sinon.spy(_mockApi.organizations, 'getOne')
-    sinon.spy(_mockStats, 'histogram')
 
-  })
-
-  beforeEach(function(){
     server = createServer(forteLifecycle(_mockApi, { lookupDelay: 0 }))
   })
 
   function assertTrackedRenderTime() {
-      it('server.renderTime should be logged via stats.histogram', function(done){
-        //console.log('_mockStats.histogram.callCount:', _mockStats.histogram.callCount)
-        var args = _mockStats.histogram.lastCall.args;
-        assert.equal(args.length, 3)
+    function lastCall(){
+      var args = _mockStats.histogram.lastCall.args;
+      assert.equal(args.length, 3)
 
-        var name  = args[0],
-            value = args[1],
-            tags  = args[2];
-
-        assert.equal(name, 'server.renderTime')
-        assert.isNumber(value, 'histogram.value')
-        assert.isObject(tags, 'histogram.tags')
-        assert.isDefined(tags.url, 'histogram.tags.url')
-
-        done()
+      return { name: args[0], value: args[1], tags: args[2] }
+    }
+    
+    describe('server.renderTime', function(){
+      it('should be logged via stats.histogram', function(){
+        var last = lastCall()
+        assert.equal(last.name, 'server.renderTime')
       })
+
+      it('should have a numeric value', function(){
+        var last = lastCall()
+        assert.isNumber(last.value, 'histogram.value')
+      })
+
+      it('should have tags', function(){
+        var last = lastCall()
+        assert.isObject(last.tags, 'histogram.tags')
+      })
+
+      it('should have tags.url', function(){
+        var last = lastCall()
+        assert.isDefined(last.tags.url, 'histogram.tags.url')
+      })
+
+      it('should have tags.statusCode', function(){
+        var last = lastCall()
+        assert.isDefined(last.tags.statusCode, 'histogram.tags.statusCode')
+      })
+    })
   }
 
   describe('when the first request is received', function(){ 
@@ -118,7 +140,7 @@ describe('forteLifecycle', function(){
         .expect(404, done)
     })
 
-    assertTrackedRenderTime()
+    //assertTrackedRenderTime()
 
     describe('and lookupDelay is in play', function(){
       beforeEach(function(){
@@ -131,7 +153,7 @@ describe('forteLifecycle', function(){
           .expect(404, done)
       })
 
-      assertTrackedRenderTime()
+      //assertTrackedRenderTime()
     })
   })
 })

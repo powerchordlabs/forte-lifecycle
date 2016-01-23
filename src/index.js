@@ -1,21 +1,18 @@
 var assign = require('./util.js').assign
 var onHeaders = require('on-headers')
 var StatsD = require('node-statsd')
-var stats = new StatsD()
+var normalizr = require('normalizr')
 var debug = require('debug')('forte-lifecycle')
 
-var Schema = require('normalizr').Schema
-var normalize = require('normalizr').normalize
-var arrayOf = require('normalizr').arrayOf
+//var stats = new StatsD()
 
-
-var organizationSchema = new Schema('organizations', {
+var organizationSchema = new normalizr.Schema('organizations', {
   idAttribute: 'hostname'
 })
 
 var Schemas = {
   ORGANIZATION: organizationSchema,
-  ORGANIZATION_ARRAY: arrayOf(organizationSchema),
+  ORGANIZATION_ARRAY: normalizr.arrayOf(organizationSchema),
 }
 
 module.exports = function forteLifecycle(apiClient, options) {
@@ -24,6 +21,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 
 	var opts = assign({}, { lookupDelay: 60, statsd: null }, options)
 	var api = apiClient
+	var stats = new StatsD(opts.statsd)
 
 	var _lastError = false
 	var _orgCache
@@ -40,13 +38,12 @@ module.exports = function forteLifecycle(apiClient, options) {
 			(!_lastError && _orgsFetchPromise) ||
 			api.organizations.getMany({status: 'active'})
 				.then(function(response) {  
-					debug('called!!!')
 					_lastOrgFetchTimestamp = Date.now();
 
 					var organizations = response.data
 					debug('organizations returned: %d', organizations.length)
 
-					_orgCache = assign({}, _orgCache, normalize(organizations, Schemas.ORGANIZATION_ARRAY))
+					_orgCache = assign({}, _orgCache, normalizr.normalize(organizations, Schemas.ORGANIZATION_ARRAY))
 					
 				}).catch(function(err) {
 					_lastError = true;
@@ -90,7 +87,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 		var start = Date.now()
 		onHeaders(res, function() {
 			res.renderTime = Date.now()-start
-			stats.histogram('server.renderTime', res.renderTime, {url: req.url, status: res.statusCode})
+			stats.histogram('server.renderTime', res.renderTime, {url: req.url, statusCode: res.statusCode})
 		})
 
 		resolveOrganization(req.headers.host)
