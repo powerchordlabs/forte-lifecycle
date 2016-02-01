@@ -76,7 +76,7 @@ describe('forteLifecycle', function(){
 
       it('should have a url tag', function(){
         var last = lastCall()
-        assert.match(last.tags[0], /url\:\/.*/, 'histogram.tags url')
+        assert.match(last.tags[0], /url\:[\w\.]+\/.*/, 'histogram.tags url')
       })
 
       it('should have a statusCode tag', function(){

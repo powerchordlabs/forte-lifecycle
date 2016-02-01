@@ -82,11 +82,10 @@ module.exports = function forteLifecycle(apiClient, options) {
 	}
 
 	return function forteLifecycle(req, res, next){
-
 		// track render time
 		var start = Date.now()
 		onHeaders(res, function() {
-			var fullUrl = req.headers.host + req.path
+			var fullUrl = req.headers.host + (req.path || req.url)
 			res.renderTime = Date.now()-start
 			stats.histogram('server.renderTime', res.renderTime, ['url:' + fullUrl, 'statusCode:' + res.statusCode])
 		})
