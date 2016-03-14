@@ -1,0 +1,40 @@
+{
+  "name": "@powerchordlabs/forte-lifecycle",
+  "version": "0.0.0-semantically-release",
+  "description": "An express middleware that automatically hooks in to forte perf and analytics",
+  "main": "./src",
+  "dependencies": {
+    "debug": "^2.2.0",
+    "node-statsd": "^0.1.1",
+    "normalizr": "^2.0.0",
+    "on-headers": "^1.0.1"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "express": "^4.13.4",
+    "istanbul": "^0.4.2",
+    "mocha": "^2.3.4",
+    "rewire": "^2.5.1",
+    "sinon": "^1.17.2",
+    "supertest": "^1.1.0",
+    "semantic-release": "^4.3.5"
+  },
+  "scripts": {
+    "test": "mocha",
+    "cover": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/powerchordlabs/forte-lifecycle.git"
+  },
+  "keywords": [
+    "forte"
+  ],
+  "author": "powerchordlabs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/powerchordlabs/forte-lifecycle/issues"
+  },
+  "homepage": "https://github.com/powerchordlabs/forte-lifecycle#readme"
+}
