@@ -80,7 +80,6 @@ The trunk organization ID for the request.
 * `branch: {string}`  
 The branch organization ID for the request.
 
-
 [build-badge]: https://img.shields.io/travis/powerchordlabs/forte-lifecycle/master.svg?style=flat-square
 [build]: https://travis-ci.org/powerchordlabs/forte-lifecycle
 
