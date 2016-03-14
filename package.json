@@ -1,6 +1,6 @@
 {
   "name": "forte-lifecycle",
-  "version": "1.1.0",
+  "version": "0.0.0-semantically-release",
   "description": "An express middleware that automatically hooks in to forte perf and analytics",
   "main": "./src",
   "dependencies": {
