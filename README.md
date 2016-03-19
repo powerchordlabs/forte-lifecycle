@@ -53,17 +53,17 @@ app.listen(3000, function () {
 #### ForteLifecycle(apiClient, [options])
 Creates an instance of the Forte Lifecycle middleware.
 
-* `apiClient: {Object}`  
+* `apiClient:`  
 A `forte-api` client instance or an object that conforms to the following interface can also be supplied:
     * `organizations.getOne(filter): {organization}`  
     Returns a promise that returns a single organization. `filter` is an object map of props to filter by e.x.: `{ hostname: '...'}`.
     * `organizations.getMany(filter): [{organization}, ...]`  
     Returns a promise that returns all organizations. `filter` is an object map of props to filter by e.x.: `{ parentID: '...'}`. 
-* `options: {Object}`
-    * `lookupDelay: {number}`  
-    The number of seconds to wait before calling the API to lookup an un-cached hostname. Useful to prevent multiple api calls for invalid/inactive hostnames.  
-    `default: 60`
-    * `stats: {Object}`  
+* `options:`
+    * `cacheDuration:`   
+    The duration in milliseconds or string in [ms format](https://www.npmjs.org/package/ms) to cache organizations lookups.  
+    `default: '15m'`
+    * `stats:`  
     An optional configuration object for `node-statsd`.  
     `default: node-statsd defaults` see [node-statsd usage](https://github.com/sivy/node-statsd#usage)
 
