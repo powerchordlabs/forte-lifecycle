@@ -3,6 +3,7 @@ var onHeaders = require('on-headers')
 var StatsD = require('node-statsd')
 var normalizr = require('normalizr')
 var debug = require('debug')('forte-lifecycle')
+var ms = require('ms')
 
 var organizationSchema = new normalizr.Schema('organizations', {
   idAttribute: 'hostname'
@@ -13,49 +14,49 @@ var Schemas = {
   ORGANIZATION_ARRAY: normalizr.arrayOf(organizationSchema),
 }
 
+function getCacheDurationMilliseconds(duration) {
+  if(typeof duration === 'number') {
+    return duration
+  }
+  return ms(duration)
+}
+
 module.exports = function forteLifecycle(apiClient, options) {
 
 	verifyConfig.apply(null, arguments)
 
-	var opts = assign({}, { lookupDelay: 60, statsd: null }, options)
-	var api = apiClient
+	var opts = assign({}, { cacheDuration: '15m', statsd: null }, options)
 	var stats = new StatsD(opts.statsd)
 
-	var _lastError = false
 	var _orgCache
-	var _orgsFetchPromise
-	var _lastOrgFetchTimestamp
-	var _trunkID = api.getScope().trunk
+	var _cacheDuration = getCacheDurationMilliseconds(options.cacheDuration)
+	var _lastCacheTimestamp
+	var _trunkID = apiClient.getScope().trunk
 	
-	function allowLookup(){
-		return new Date(Date.now()-_lastOrgFetchTimestamp).getSeconds() >= opts.lookupDelay
+	function isCacheValid(){
+	  return _orgCache && (_lastCacheTimestamp + _cacheDuration) >= Date.now();
 	}
 
-	function resolveOrganization(hostname){
-		// load all orgs if we don't have them already, or we got an error last time
-		_orgsFetchPromise = 
-			(!_lastError && _orgsFetchPromise) ||
-			api.experience.bootstrap(_trunkID)
-				.then(function(response) {  
-					_lastOrgFetchTimestamp = Date.now();
+	function resolveOrganization(hostname) {
+		if(isCacheValid()) {
+			debug('organization cache valid')
+			return Promise.resolve(_orgCache.entities.organizations[hostname] || {})
+		}
 
-					var organizations = response.body
-					debug('organizations returned: %d', organizations.length)
+		debug('organization cache invalid, loading organizations')
+		return apiClient.experience.bootstrap(_trunkID)
+			.then(function(response) {  
+				_lastCacheTimestamp = Date.now();
 
-					_orgCache = assign({}, _orgCache, normalizr.normalize(organizations, Schemas.ORGANIZATION_ARRAY))
-					
-				}).catch(function(err) {
-					_lastError = true;
-				})
+				var organizations = response.body
+				debug('organizations returned: %d', organizations.length)
 
-		return _orgsFetchPromise.then(function() {
-			var _cachedOrg = _orgCache.entities.organizations[hostname]
-			debug('found %d org in cache for hostname %s', _cachedOrg ? 1 : 0, hostname)
+				_orgCache = assign({}, _orgCache, normalizr.normalize(organizations, Schemas.ORGANIZATION_ARRAY))
 
-			// TODO: see ticket #2586 about creating support for getOne by hostname
-
-			return assign({}, _cachedOrg)
-		})
+				return _orgCache.entities.organizations[hostname] || {}
+			}).catch(function(err) {
+				_lastError = true;
+			})
 	}
 
 	return function forteLifecycle(req, res, next){

@@ -82,9 +82,24 @@ describe('forteLifecycle', function(){
     })
   }
 
-  describe('when the first request is received', function(){ 
-    it('the organization cache shoud be populated', function(done){
-      request(server)
+  describe('when a request is received and cacheDuration is set', function(){ 
+
+    var cacheEnabledMiddleware
+
+    before(function(){
+      _mockApi = mockApi({latency: 0})
+
+      sinon.spy(_mockApi.experience, 'bootstrap')
+
+      cacheEnabledMiddleware = forteLifecycle(_mockApi, { cacheDuration: '50'})
+    })
+
+    it('should fetch organizations from the API if cache is empty', function(done){
+      var app = express()
+      app.use(cacheEnabledMiddleware)
+      app.use(end)
+
+      request(app)
         .get('/')
         .set('host', 'dealer1')
         .expect(200)
@@ -93,6 +108,41 @@ describe('forteLifecycle', function(){
           assert(_mockApi.experience.bootstrap.calledOnce)
           done()
         })
+    })
+
+    it('should fetch the organization from internal cache when cache is not expired', function(done){
+      var app = express()
+      app.use(cacheEnabledMiddleware)
+      app.use(end)
+
+      request(app)
+        .get('/')
+        .set('host', 'dealer1')
+        .expect(200)
+        .end(function(err, res){
+          if (err) return done(err);
+          assert(_mockApi.experience.bootstrap.calledOnce)
+          done()
+        })
+
+    })
+
+    it('should fetch organizations from the API if cache is expired', function(done){
+      var app = express()
+      app.use(cacheEnabledMiddleware)
+      app.use(end)
+
+      setTimeout(function(){
+        request(app)
+          .get('/')
+          .set('host', 'dealer1')
+          .expect(200)
+          .end(function(err, res){
+            if (err) return done(err);
+            assert(_mockApi.experience.bootstrap.calledTwice)
+            done()
+          })
+      }, 100)
     })
 
     assertTrackedRenderTime()
@@ -124,8 +174,11 @@ describe('forteLifecycle', function(){
   })
 
   describe('when a request has an INVALID hostname', function(){
-    it.skip('should return a 404 status', function(done){
-      request(server)
+    it('should return a 404 status', function(done){
+      var app = express()
+      app.use(forteLifecycle(_mockApi, { cacheDuration: '5s' }))
+
+      request(app)
         .get('/')
         .set('host', 'INVALID')
         .expect(404, done)
@@ -148,6 +201,10 @@ describe('forteLifecycle', function(){
     })
   })
 })
+
+function end(req, res) {
+  res.end(JSON.stringify(req.lifecycle.scope))
+}
 
 function createServer(middleware) {
   var server = express()
