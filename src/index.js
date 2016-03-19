@@ -29,7 +29,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 	var stats = new StatsD(opts.statsd)
 
 	var _orgCache
-	var _cacheDuration = getCacheDurationMilliseconds(options.cacheDuration)
+	var _cacheDuration = getCacheDurationMilliseconds(opts.cacheDuration)
 	var _lastCacheTimestamp
 	var _trunkID = apiClient.getScope().trunk
 	
