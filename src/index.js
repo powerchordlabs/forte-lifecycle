@@ -32,20 +32,21 @@ module.exports = function forteLifecycle(apiClient, options) {
 	var _cacheDuration = getCacheDurationMilliseconds(opts.cacheDuration)
 	var _lastCacheTimestamp
 	var _trunkID = apiClient.getScope().trunk
-	
+
 	function isCacheValid(){
 	  return _orgCache && (_lastCacheTimestamp + _cacheDuration) >= Date.now();
 	}
 
 	function resolveOrganization(hostname) {
-		if(isCacheValid()) {
-			debug('organization cache valid')
-			return Promise.resolve(_orgCache.entities.organizations[hostname] || {})
-		}
-
-		debug('organization cache invalid, loading organizations')
+    // REMOVE CACHING FOR NOW AND RESOLVE EVERY TIME.
+		// if(isCacheValid()) {
+		// 	debug('organization cache valid')
+		// 	return Promise.resolve(_orgCache.entities.organizations[hostname] || {})
+		// }
+    //
+		// debug('organization cache invalid, loading organizations')
 		return apiClient.experience.bootstrap(_trunkID)
-			.then(function(response) {  
+			.then(function(response) {
 				_lastCacheTimestamp = Date.now();
 
 				var organizations = response.body
@@ -69,7 +70,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 		})
 
 		resolveOrganization(req.hostname)
-			.then(function(organization) { 
+			.then(function(organization) {
 				debug('organization found: \n%o', organization)
 				req.lifecycle = {
 					scope: {
@@ -85,7 +86,7 @@ module.exports = function forteLifecycle(apiClient, options) {
 	}
 }
 
-/* 
+/*
  * Custom Errors
  */
 function InvalidArgumentError(message) {
@@ -96,7 +97,7 @@ function InvalidArgumentError(message) {
 InvalidArgumentError.prototype = Object.create(Error.prototype);
 InvalidArgumentError.prototype.constructor = InvalidArgumentError;
 
-/* 
+/*
  * Verifcations
  */
 function argumentError(name) {
@@ -122,4 +123,3 @@ function verifyConfig(apiClient, options) {
 	}
 	*/
 }
-
