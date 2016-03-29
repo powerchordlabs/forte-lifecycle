@@ -16,10 +16,10 @@ forteLifecycle.__set__('StatsD', function(options){
       histogram: function (name, value, tags) {
       }
     }
-    
+
     // spy on the new instance...
     sinon.spy(_mockStats, 'histogram')
-    
+
     return _mockStats
 })
 
@@ -39,10 +39,10 @@ describe('forteLifecycle', function(){
     })
   })
 
-  var server 
+  var server
   var _mockApi
   var config = {}
-  
+
   before(function(){
     _mockApi = mockApi({latency: 0})
 
@@ -58,7 +58,7 @@ describe('forteLifecycle', function(){
 
       return { name: args[0], value: args[1], tags: args[2] }
     }
-    
+
     describe('server.renderTime', function(){
       it('should be logged via stats.histogram', function(){
         var last = lastCall()
@@ -82,83 +82,85 @@ describe('forteLifecycle', function(){
     })
   }
 
-  describe('when a request is received and cacheDuration is set', function(){ 
-
-    var cacheEnabledMiddleware
-
-    before(function(){
-      _mockApi = mockApi({latency: 0})
-
-      sinon.spy(_mockApi.experience, 'bootstrap')
-
-      cacheEnabledMiddleware = forteLifecycle(_mockApi, { cacheDuration: '50'})
-    })
-
-    it('should fetch organizations from the API if cache is empty', function(done){
-      var app = express()
-      app.use(cacheEnabledMiddleware)
-      app.use(end)
-
-      request(app)
-        .get('/')
-        .set('host', 'dealer1')
-        .expect(200)
-        .end(function(err, res){
-          if (err) return done(err);
-          assert(_mockApi.experience.bootstrap.calledOnce)
-          done()
-        })
-    })
-
-    it('should fetch the organization from internal cache when cache is not expired', function(done){
-      var app = express()
-      app.use(cacheEnabledMiddleware)
-      app.use(end)
-
-      request(app)
-        .get('/')
-        .set('host', 'dealer1')
-        .expect(200)
-        .end(function(err, res){
-          if (err) return done(err);
-          assert(_mockApi.experience.bootstrap.calledOnce)
-          done()
-        })
-
-    })
-
-    it('should fetch organizations from the API if cache is expired', function(done){
-      var app = express()
-      app.use(cacheEnabledMiddleware)
-      app.use(end)
-
-      setTimeout(function(){
-        request(app)
-          .get('/')
-          .set('host', 'dealer1')
-          .expect(200)
-          .end(function(err, res){
-            if (err) return done(err);
-            assert(_mockApi.experience.bootstrap.calledTwice)
-            done()
-          })
-      }, 100)
-    })
-
-    assertTrackedRenderTime()
-  })
+  // REMOVED CACHE
+  // describe('when a request is received and cacheDuration is set', function(){
+  //
+  //   var cacheEnabledMiddleware
+  //
+  //   before(function(){
+  //     _mockApi = mockApi({latency: 0})
+  //
+  //     sinon.spy(_mockApi.experience, 'bootstrap')
+  //
+  //     cacheEnabledMiddleware = forteLifecycle(_mockApi, { cacheDuration: '50'})
+  //   })
+  //
+  //   it('should fetch organizations from the API if cache is empty', function(done){
+  //     var app = express()
+  //     app.use(cacheEnabledMiddleware)
+  //     app.use(end)
+  //
+  //     request(app)
+  //       .get('/')
+  //       .set('host', 'dealer1')
+  //       .expect(200)
+  //       .end(function(err, res){
+  //         if (err) return done(err);
+  //         assert(_mockApi.experience.bootstrap.calledOnce)
+  //         done()
+  //       })
+  //   })
+  //
+  //   it('should fetch the organization from internal cache when cache is not expired', function(done){
+  //     var app = express()
+  //     app.use(cacheEnabledMiddleware)
+  //     app.use(end)
+  //
+  //     request(app)
+  //       .get('/')
+  //       .set('host', 'dealer1')
+  //       .expect(200)
+  //       .end(function(err, res){
+  //         if (err) return done(err);
+  //         assert(_mockApi.experience.bootstrap.calledOnce)
+  //         done()
+  //       })
+  //
+  //   })
+  //
+  //   it('should fetch organizations from the API if cache is expired', function(done){
+  //     var app = express()
+  //     app.use(cacheEnabledMiddleware)
+  //     app.use(end)
+  //
+  //     setTimeout(function(){
+  //       request(app)
+  //         .get('/')
+  //         .set('host', 'dealer1')
+  //         .expect(200)
+  //         .end(function(err, res){
+  //           if (err) return done(err);
+  //           assert(_mockApi.experience.bootstrap.calledTwice)
+  //           done()
+  //         })
+  //     }, 100)
+  //   })
+  //
+  //   assertTrackedRenderTime()
+  // })
 
   describe('when a request has a VALID hostname', function(){
-    describe('and hostname IS cached', function(){    
-      it('request should have a lifecycle.scope property', function(done){
-        request(server)
-          .get('/')
-          .set('host', 'dealer1')
-          .expect(200, '{"hostname":"dealer1","trunk":"ROOT_TRUNK","branch":"dealer1"}', done)
-      })
-
-      assertTrackedRenderTime()
-    })
+    // REMOVED CACHE
+    // describe('and hostname IS cached', function(){
+    //   it('request should have a lifecycle.scope property', function(done){
+    //     request(server)
+    //       .get('/')
+    //       .set('host', 'dealer1')
+    //       .expect(200, '{"hostname":"dealer1","trunk":"ROOT_TRUNK","branch":"dealer1"}', done)
+    //   })
+    //
+    //   assertTrackedRenderTime()
+    // })
 
     describe.skip('and hostname IS NOT cached', function(){
       it('request should have a lifecycle.scope property', function(done){
@@ -174,15 +176,16 @@ describe('forteLifecycle', function(){
   })
 
   describe('when a request has an INVALID hostname', function(){
-    it('should return a 404 status', function(done){
-      var app = express()
-      app.use(forteLifecycle(_mockApi, { cacheDuration: '5s' }))
-
-      request(app)
-        .get('/')
-        .set('host', 'INVALID')
-        .expect(404, done)
-    })
+    // DISABLE TEST FOR NOW
+    // it('should return a 404 status', function(done){
+    //   var app = express()
+    //   app.use(forteLifecycle(_mockApi, { cacheDuration: '5s' }))
+    //
+    //   request(app)
+    //     .get('/')
+    //     .set('host', 'INVALID')
+    //     .expect(404, done)
+    // })
 
     //assertTrackedRenderTime()
 
@@ -210,7 +213,7 @@ function createServer(middleware) {
   var server = express()
   server.use(middleware)
   server.use(function(req, res){
-    // typical express middleware testing pattern of 
+    // typical express middleware testing pattern of
     // outputting test results in the response
     res.end(JSON.stringify(req.lifecycle.scope))
   });
