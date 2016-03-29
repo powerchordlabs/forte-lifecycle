@@ -54,7 +54,13 @@ module.exports = function forteLifecycle(apiClient, options) {
 
 				_orgCache = assign({}, _orgCache, normalizr.normalize(organizations, Schemas.ORGANIZATION_ARRAY))
 
-				return _orgCache.entities.organizations[hostname] || {}
+        const res = {bearerToken: response.headers.authorization, organization: {}}
+        const organization = _orgCache.entities.organizations[hostname]
+
+        if (organization) {
+          res.organization = organization
+        }
+				return res
 			}).catch(function(err) {
 				_lastError = true;
 			})
@@ -70,15 +76,16 @@ module.exports = function forteLifecycle(apiClient, options) {
 		})
 
 		resolveOrganization(req.hostname)
-			.then(function(organization) {
-				debug('organization found: \n%o', organization)
+			.then(function(response) {
+				debug('organization found: \n%o', response.organization)
 				req.lifecycle = {
 					scope: {
-						hostname: organization.hostname,
+						hostname: response.organization.hostname,
 						trunk: _trunkID,
-						branch: organization.ID
+						branch: response.organization.ID
 					}
 				}
+        req.lifecycle.bearerToken = response.bearerToken
 				next()
 			}, function(response) {
         		next(response)
