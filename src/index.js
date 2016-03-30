@@ -38,29 +38,18 @@ module.exports = function forteLifecycle(apiClient, options) {
 	}
 
 	function resolveOrganization(hostname) {
-    // REMOVE CACHING FOR NOW AND RESOLVE EVERY TIME.
-		// if(isCacheValid()) {
-		// 	debug('organization cache valid')
-		// 	return Promise.resolve(_orgCache.entities.organizations[hostname] || {})
-		// }
-    //
-		// debug('organization cache invalid, loading organizations')
-		return apiClient.experience.bootstrap(_trunkID)
+		return apiClient.organizations.getOneByHostname(hostname)
 			.then(function(response) {
-				_lastCacheTimestamp = Date.now();
-
-				var organizations = response.body
-				debug('organizations returned: %d', organizations.length)
-
-				_orgCache = assign({}, _orgCache, normalizr.normalize(organizations, Schemas.ORGANIZATION_ARRAY))
-
-        const res = {bearerToken: response.headers.authorization, organization: {}}
-        const organization = _orgCache.entities.organizations[hostname]
+				var organization = response.body
+				debug('organizations returned: %d', organization)
 
         if (organization) {
-          res.organization = organization
+          return {
+            bearerToken: response.headers.authorization,
+            organization: organization}
+        } else {
+          return null
         }
-				return res
 			}).catch(function(err) {
 				_lastError = true;
 			})
@@ -77,15 +66,19 @@ module.exports = function forteLifecycle(apiClient, options) {
 
 		resolveOrganization(req.hostname)
 			.then(function(response) {
-				debug('organization found: \n%o', response.organization)
-				req.lifecycle = {
-					scope: {
-						hostname: response.organization.hostname,
-						trunk: _trunkID,
-						branch: response.organization.ID
-					}
-				}
-        req.lifecycle.bearerToken = response.bearerToken
+        if (response) {
+  				debug('organization found: \n%o', response.organization)
+  				req.lifecycle = {
+  					scope: {
+              bearerToken: response.bearerToken,
+  						hostname: response.organization.hostname,
+              branch: response.organization.ID,
+  						trunk: _trunkID,
+  					}
+  				}
+        } else {
+          res.status(404).send('Not Found')
+        }
 				next()
 			}, function(response) {
         		next(response)

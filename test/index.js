@@ -176,16 +176,15 @@ describe('forteLifecycle', function(){
   })
 
   describe('when a request has an INVALID hostname', function(){
-    // DISABLE TEST FOR NOW
-    // it('should return a 404 status', function(done){
-    //   var app = express()
-    //   app.use(forteLifecycle(_mockApi, { cacheDuration: '5s' }))
-    //
-    //   request(app)
-    //     .get('/')
-    //     .set('host', 'INVALID')
-    //     .expect(404, done)
-    // })
+    it('should return a 404 status', function(done){
+      var app = express()
+      app.use(forteLifecycle(_mockApi, { cacheDuration: '5s' }))
+
+      request(app)
+        .get('/')
+        .set('host', 'INVALID')
+        .expect(404, done)
+    })
 
     //assertTrackedRenderTime()
 

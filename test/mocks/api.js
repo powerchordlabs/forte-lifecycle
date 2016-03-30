@@ -11,15 +11,43 @@ module.exports = function(options) {
       }
     },
     experience: {
+      session: function(id){
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            resolve({
+              status: 200,
+              statusText: 'ok'
+            })
+          }, opts.latency)
+        })
+      },
       bootstrap: function(id){
         return new Promise(function(resolve, reject) {
-          setTimeout(function() { 
-            resolve({ 
-              status: 200, 
-              statusText: 'ok', 
+          setTimeout(function() {
+            resolve({
+              status: 200,
+              statusText: 'ok',
               body: [
-                { 
-                  ID: "dealer1", 
+                {
+                  ID: "dealer1",
+                  hostname: "dealer1"
+                }
+              ]
+            })
+          }, opts.latency)
+        })
+      }
+    },
+    organizations: {
+      getOneByHostname: function(id){
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            resolve({
+              status: 200,
+              statusText: 'ok',
+              body: [
+                {
+                  ID: "dealer1",
                   hostname: "dealer1"
                 }
               ]
