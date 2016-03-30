@@ -1,3 +1,4 @@
+var forteApi = require('forte-api')
 var assign = require('./util.js').assign
 var onHeaders = require('on-headers')
 var StatsD = require('node-statsd')
@@ -21,9 +22,7 @@ function getCacheDurationMilliseconds(duration) {
   return ms(duration)
 }
 
-module.exports = function forteLifecycle(apiClient, options) {
-
-	verifyConfig.apply(null, arguments)
+module.exports = function forteLifecycle(creds, api, options) {
 
 	var opts = assign({}, { cacheDuration: '15m', statsd: null }, options)
 	var stats = new StatsD(opts.statsd)
@@ -31,13 +30,13 @@ module.exports = function forteLifecycle(apiClient, options) {
 	var _orgCache
 	var _cacheDuration = getCacheDurationMilliseconds(opts.cacheDuration)
 	var _lastCacheTimestamp
-	var _trunkID = apiClient.getScope().trunk
 
 	function isCacheValid(){
 	  return _orgCache && (_lastCacheTimestamp + _cacheDuration) >= Date.now();
 	}
 
 	function resolveOrganization(hostname) {
+    const apiClient = forteApi(creds, {hostname: hostname, trunk: api.scope.trunk}, { url: api.url })
 		return apiClient.organizations.getOneByHostname(hostname)
 			.then(function(response) {
 				var organization = response.body
@@ -69,11 +68,11 @@ module.exports = function forteLifecycle(apiClient, options) {
         if (response) {
   				debug('organization found: \n%o', response.organization)
   				req.lifecycle = {
+            bearerToken: response.bearerToken,
   					scope: {
-              bearerToken: response.bearerToken,
   						hostname: response.organization.hostname,
               branch: response.organization.ID,
-  						trunk: _trunkID,
+              trunk: api.scope.trunk
   					}
   				}
         } else {
@@ -102,24 +101,4 @@ InvalidArgumentError.prototype.constructor = InvalidArgumentError;
  */
 function argumentError(name) {
 	throw new InvalidArgumentError(name)
-}
-
-function verifyConfig(apiClient, options) {
-	if(typeof apiClient !== 'object') {
-		argumentError('apiClient')
-	}
-
-	if(typeof apiClient.experience !== 'object') {
-		argumentError('apiClient.experience')
-	}
-
-	if(typeof apiClient.experience.bootstrap !== 'function') {
-		argumentError('apiClient.experience.bootstrap')
-	}
-
-	/*
-	if(typeof apiClient.organizations.getOne !== 'function') {
-		argumentError('apiClient.organizations.getOne')
-	}
-	*/
 }

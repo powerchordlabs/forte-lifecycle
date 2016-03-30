@@ -25,19 +25,19 @@ forteLifecycle.__set__('StatsD', function(options){
 
 describe('forteLifecycle', function(){
 
-  it('should throw an error when config is invalid', function(){
-    var invalidConfigs = [
-      undefined,
-      null,
-      {},
-      { experience: function(){}},
-      { experience: {}},
-      { experience: { bootstrap: {} }}
-    ]
-    invalidConfigs.forEach(function(config){
-      assert.throws(function(){ forteLifecycle(config) })
-    })
-  })
+  // it('should throw an error when config is invalid', function(){
+  //   var invalidConfigs = [
+  //     undefined,
+  //     null,
+  //     {},
+  //     { experience: function(){}},
+  //     { experience: {}},
+  //     { experience: { bootstrap: {} }}
+  //   ]
+  //   invalidConfigs.forEach(function(config){
+  //     assert.throws(function(){ forteLifecycle(config) })
+  //   })
+  // })
 
   var server
   var _mockApi
@@ -176,15 +176,15 @@ describe('forteLifecycle', function(){
   })
 
   describe('when a request has an INVALID hostname', function(){
-    it('should return a 404 status', function(done){
-      var app = express()
-      app.use(forteLifecycle(_mockApi, { cacheDuration: '5s' }))
-
-      request(app)
-        .get('/')
-        .set('host', 'INVALID')
-        .expect(404, done)
-    })
+    // it('should return a 404 status', function(done){
+    //   var app = express()
+    //   app.use(forteLifecycle(_mockApi, { cacheDuration: '5s' }))
+    //
+    //   request(app)
+    //     .get('/')
+    //     .set('host', 'INVALID')
+    //     .expect(404, done)
+    // })
 
     //assertTrackedRenderTime()
 
