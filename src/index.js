@@ -3,8 +3,8 @@ var assign = require('./util.js').assign
 var onHeaders = require('on-headers')
 var StatsD = require('node-statsd')
 var normalizr = require('normalizr')
-var debug = require('debug')('forte-lifecycle')
 var ms = require('ms')
+var debug = require('./util').debug
 
 var organizationSchema = new normalizr.Schema('organizations', {
   idAttribute: 'hostname'
@@ -36,23 +36,23 @@ module.exports = function forteLifecycle(creds, api, options) {
 	}
 
 	function resolveOrganization(hostname) {
-    const apiClient = forteApi(creds, {hostname: hostname, trunk: api.scope.trunk}, { url: api.url })
-		return apiClient.organizations.getOneByHostname(hostname)
-			.then(function(response) {
-				var organization = response.body
-				debug('organizations returned: %d', organization)
+    const apiClient = forteApi(creds, {hostname: hostname, trunk: api.scope.trunk}, {url: api.url})
+    return apiClient.organizations.getOneByHostname(hostname)
+      .then(function (response) {
+        var organization = response.body
+        debug.info('organizations returned: %d', organization)
 
         if (organization) {
           return {
             bearerToken: response.headers.authorization,
-            organization: organization}
+            organization: organization
+          }
         } else {
+          debug.warn('no organizations returned!')
           return null
         }
-			}).catch(function(err) {
-				_lastError = true;
-			})
-	}
+      })
+  }
 
 	return function forteLifecycle(req, res, next){
 		// track render time
@@ -66,7 +66,7 @@ module.exports = function forteLifecycle(creds, api, options) {
 		resolveOrganization(req.hostname)
 			.then(function(response) {
         if (response) {
-  				debug('organization found: \n%o', response.organization)
+  				debug.info('organization found: \n%o', response.organization)
   				req.lifecycle = {
             bearerToken: response.bearerToken,
   					scope: {
@@ -75,13 +75,17 @@ module.exports = function forteLifecycle(creds, api, options) {
               trunk: api.scope.trunk
   					}
   				}
-        } else {
-          res.status(404).send('Not Found')
+        }
+        else {
+          debug.warn('Failed to find organization (resolveOrganization response is falsy', req, response)
+          res.status(404).send('We\'re sorry - we were unable to look up the domain name requested. Please check the spelling and try again.')
         }
 				next()
-			}, function(response) {
-        		next(response)
-			}).catch(next)
+			})
+      .catch(function(e) {
+			  debug.warn('Failed to find organization (resolveOrganization catch)',e)
+        res.status(404).send('We were unable to look up the domain name requested. Please check the spelling and try again.')
+      })
 	}
 }
 
