@@ -77,13 +77,14 @@ module.exports = function forteLifecycle(creds, api, options) {
   				}
         }
         else {
-          debug.warn('Failed to find organization (resolveOrganization response is falsy', req, response)
+          debug.warn('Failed to find organization (resolveOrganization response is falsy)', req, response)
           res.status(404).send('We\'re sorry - we were unable to look up the domain name requested. Please check the spelling and try again.')
         }
 				next()
 			})
       .catch(function(e) {
-			  debug.warn('Failed to find organization (resolveOrganization catch)',e)
+        var info = 'API call status code: ' + e.response.statusCode + ', EID: ' + e.response.headers['vnd.powerchord.eid'] + ', URL: ' + e.response.request.url
+			  debug.warn('Failed to find organization (resolveOrganization catch).', info)
         res.status(404).send('We were unable to look up the domain name requested. Please check the spelling and try again.')
       })
 	}
