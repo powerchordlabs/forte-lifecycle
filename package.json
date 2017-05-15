@@ -5,7 +5,7 @@
   "main": "./src",
   "dependencies": {
     "debug": "^2.2.0",
-    "forte-api": "^1.1.8",
+    "forte-api": "^2.6.3",
     "ms": "^0.7.1",
     "node-statsd": "^0.1.1",
     "normalizr": "^2.0.0",
